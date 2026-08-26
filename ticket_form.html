@@ -229,8 +229,8 @@
 
     <script>
         // CONFIGURATION: ใส่ค่า n8n Webhook URL และ LINE LIFF ID ของคุณที่นี่
-        const N8N_WEBHOOK_URL = 'https://YOUR_N8N_INSTANCE_URL/webhook/liff-ticket';
-        const LIFF_ID = 'YOUR_LIFF_ID_HERE'; // เปลี่ยนเป็น LIFF ID จาก LINE Developer Console
+        const N8N_WEBHOOK_URL = 'https://n8n.arterypartner.dev/webhook/line-router';
+        const LIFF_ID = '2010806104-lwUaZlcq'; // เปลี่ยนเป็น LIFF ID ของคุณ (รองรับทั้ง ID และ URL ของ LIFF)
 
         // State variables
         let selectedFile = null;
@@ -238,7 +238,16 @@
         // Initialize LIFF App
         async function initializeLiff() {
             try {
-                await liff.init({ liffId: LIFF_ID });
+                // ดึงเฉพาะ LIFF ID ในกรณีที่ใส่มาเป็น URL เต็ม
+                let cleanLiffId = LIFF_ID;
+                if (cleanLiffId.includes('liff.line.me/')) {
+                    const parts = cleanLiffId.split('liff.line.me/');
+                    if (parts[1]) {
+                        cleanLiffId = parts[1].split('/')[0].split('?')[0].split('#')[0];
+                    }
+                }
+                
+                await liff.init({ liffId: cleanLiffId });
                 
                 if (!liff.isLoggedIn()) {
                     liff.login();
