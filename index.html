@@ -337,7 +337,6 @@
                 }
                 
                 document.getElementById('userEmail').value = userEmail;
-                document.getElementById('userEmailDisplay').textContent = userEmail;
 
                 // Fetch Project from URL query parameter (e.g. ?project=ERPNext)
                 const urlParams = new URLSearchParams(window.location.search);
@@ -345,9 +344,8 @@
                 const projectName = projectParam ? decodeURIComponent(projectParam) : 'ERPNext Helpdesk';
                 
                 document.getElementById('project').value = projectName;
-                document.getElementById('projectDisplay').textContent = projectName;
 
-                // Fetch Full Name & Company from database
+                // Fetch Info from database (Full Name, Company, Email, Project)
                 await fetchUserInfo(userId, userEmail);
 
             } catch (error) {
@@ -364,9 +362,7 @@
             const mockEmail = 'demo.user@company.com';
             
             document.getElementById('lineUserId').value = mockUserId;
-            
             document.getElementById('userEmail').value = mockEmail;
-            document.getElementById('userEmailDisplay').textContent = mockEmail;
             
             // Read query params as fallback
             const urlParams = new URLSearchParams(window.location.search);
@@ -374,13 +370,12 @@
             const projectName = projectParam ? decodeURIComponent(projectParam) : 'Mock Development Project';
             
             document.getElementById('project').value = projectName;
-            document.getElementById('projectDisplay').textContent = projectName;
 
-            // Fetch Full Name & Company from database
+            // Fetch Info from database
             await fetchUserInfo(mockUserId, mockEmail);
         }
 
-        // Fetch User Info (Full Name, Company, Project) from backend
+        // Fetch User Info (Full Name, Company, Email, Project) from backend
         async function fetchUserInfo(userId, email) {
             try {
                 // เรียกไปยัง n8n webhook ด้วย POST (เนื่องจาก Webhook มักรองรับ POST เป็นหลัก)
@@ -417,10 +412,22 @@
                             document.getElementById('companyInput').value = '';
                         }
 
-                        // 3. จัดการ Project (หาก ERPNext คืนค่าโครงการมา)
+                        // 3. จัดการ Email
+                        if (data.email) {
+                            document.getElementById('userEmailDisplay').textContent = data.email;
+                            document.getElementById('userEmail').value = data.email;
+                        } else {
+                            document.getElementById('userEmailDisplay').textContent = 'ไม่พบข้อมูลในระบบ';
+                            document.getElementById('userEmail').value = '';
+                        }
+
+                        // 4. จัดการ Project
                         if (data.project) {
                             document.getElementById('projectDisplay').textContent = data.project;
                             document.getElementById('project').value = data.project;
+                        } else {
+                            document.getElementById('projectDisplay').textContent = 'ไม่พบข้อมูลในระบบ';
+                            document.getElementById('project').value = '';
                         }
                     }
                 } else {
@@ -439,6 +446,7 @@
                     if (getResponse.ok) {
                         const data = await getResponse.json();
                         if (data) {
+                            // 1. Full Name
                             if (data.fullName) {
                                 document.getElementById('fullNameDisplay').textContent = data.fullName;
                                 document.getElementById('fullNameInput').value = data.fullName;
@@ -447,6 +455,7 @@
                                 document.getElementById('fullNameInput').value = '';
                             }
 
+                            // 2. Company
                             if (data.company) {
                                 document.getElementById('companyDisplay').textContent = data.company;
                                 document.getElementById('companyInput').value = data.company;
@@ -455,9 +464,22 @@
                                 document.getElementById('companyInput').value = '';
                             }
 
+                            // 3. Email
+                            if (data.email) {
+                                document.getElementById('userEmailDisplay').textContent = data.email;
+                                document.getElementById('userEmail').value = data.email;
+                            } else {
+                                document.getElementById('userEmailDisplay').textContent = 'ไม่พบข้อมูลในระบบ';
+                                document.getElementById('userEmail').value = '';
+                            }
+
+                            // 4. Project
                             if (data.project) {
                                 document.getElementById('projectDisplay').textContent = data.project;
                                 document.getElementById('project').value = data.project;
+                            } else {
+                                document.getElementById('projectDisplay').textContent = 'ไม่พบข้อมูลในระบบ';
+                                document.getElementById('project').value = '';
                             }
                             return; // ทำงานสำเร็จ
                         }
@@ -471,6 +493,10 @@
                 document.getElementById('fullNameInput').value = '';
                 document.getElementById('companyDisplay').textContent = 'ไม่พบข้อมูลในระบบ';
                 document.getElementById('companyInput').value = '';
+                document.getElementById('userEmailDisplay').textContent = 'ไม่พบข้อมูลในระบบ';
+                document.getElementById('userEmail').value = '';
+                document.getElementById('projectDisplay').textContent = 'ไม่พบข้อมูลในระบบ';
+                document.getElementById('project').value = '';
             }
         }
 
