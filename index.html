@@ -383,9 +383,17 @@
         // Fetch User Info (Full Name, Company, Project) from backend
         async function fetchUserInfo(userId, email) {
             try {
-                // เรียกไปยัง n8n webhook เพื่อดึงข้อมูลผู้ใช้ (Full Name, Company และ Project)
-                const response = await fetch(`${N8N_WEBHOOK_URL}?action=getUserInfo&lineUserId=${userId}&userEmail=${email}`, {
-                    method: 'GET'
+                // เรียกไปยัง n8n webhook ด้วย POST (เนื่องจาก Webhook มักรองรับ POST เป็นหลัก)
+                const response = await fetch(N8N_WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        action: 'getUserInfo',
+                        lineUserId: userId,
+                        userEmail: email
+                    })
                 });
                 
                 if (response.ok) {
@@ -415,13 +423,49 @@
                         }
                     }
                 } else {
-                    await useLineProfileFallback();
-                    document.getElementById('companyDisplay').textContent = 'ไม่พบข้อมูลในระบบ (การเชื่อมต่อล้มเหลว)';
+                    // หาก POST ตอบกลับมีค่าสถานะไม่สำเร็จ ลองเรียกด้วย GET
+                    throw new Error("POST request returned non-OK status");
                 }
             } catch (error) {
-                console.error("Failed to fetch user info", error);
+                console.warn("Failed to fetch user info via POST, trying GET fallback...", error);
+                
+                // ลอง fallback ด้วย GET ในกรณีที่หลังบ้านตั้งค่าแบบ GET ไว้
+                try {
+                    const getResponse = await fetch(`${N8N_WEBHOOK_URL}?action=getUserInfo&lineUserId=${userId}&userEmail=${email}`, {
+                        method: 'GET'
+                    });
+                    
+                    if (getResponse.ok) {
+                        const data = await getResponse.json();
+                        if (data) {
+                            if (data.fullName) {
+                                document.getElementById('fullNameDisplay').textContent = data.fullName;
+                                document.getElementById('fullNameInput').value = data.fullName;
+                            } else {
+                                await useLineProfileFallback();
+                            }
+
+                            if (data.company) {
+                                document.getElementById('companyDisplay').textContent = data.company;
+                                document.getElementById('companyInput').value = data.company;
+                            } else {
+                                document.getElementById('companyDisplay').textContent = 'ไม่พบข้อมูลในระบบ';
+                                document.getElementById('companyInput').value = '';
+                            }
+
+                            if (data.project) {
+                                document.getElementById('projectDisplay').textContent = data.project;
+                                document.getElementById('project').value = data.project;
+                            }
+                            return; // ทำงานสำเร็จ
+                        }
+                    }
+                } catch (getErr) {
+                    console.error("Failed to fetch user info via GET fallback", getErr);
+                }
+
                 await useLineProfileFallback();
-                document.getElementById('companyDisplay').textContent = 'ไม่พบข้อมูลในระบบ (เกิดข้อผิดพลาด)';
+                document.getElementById('companyDisplay').textContent = 'ไม่พบข้อมูลในระบบ';
             }
         }
 
