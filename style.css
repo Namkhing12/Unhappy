@@ -492,6 +492,83 @@ textarea.input-control {
     background-color: #e5edf5;
 }
 
+/* Success Screen Specific Custom Styling (Matching Mockup) */
+#successScreen .result-icon.success {
+    width: 110px;
+    height: 110px;
+    background-color: #E6F9EE;
+    color: #06C755;
+    margin-bottom: 28px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#successScreen .result-icon.success svg {
+    width: 44px;
+    height: 44px;
+    stroke: currentColor;
+    stroke-width: 4;
+}
+
+#successScreen .result-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: #0F172A;
+    margin-bottom: 14px;
+}
+
+#successScreen .result-desc {
+    font-size: 15px;
+    color: #4B5563;
+    line-height: 1.6;
+    margin-bottom: 40px;
+    max-width: 360px;
+}
+
+#successScreen .btn-result-group {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+    max-width: 320px;
+}
+
+#successScreen .btn-close-liff {
+    background-color: #F1F3F5;
+    color: #374151;
+    border: none;
+    border-radius: 14px;
+    padding: 15px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    width: 100%;
+    transition: background 0.2s;
+}
+
+#successScreen .btn-close-liff:hover {
+    background-color: #E5E7EB;
+}
+
+#successScreen .btn-reset-form {
+    background-color: #F1F3F5;
+    color: #06C755;
+    border: none;
+    border-radius: 14px;
+    padding: 15px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    width: 100%;
+    transition: background 0.2s;
+}
+
+#successScreen .btn-reset-form:hover {
+    background-color: #E8F8F0;
+}
+
 /* Debug notice banner */
 .debug-notice {
     background-color: #fef3c7;
