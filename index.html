@@ -38,6 +38,30 @@
 
         <!-- User Information Profile Card (Read-Only fields displayed beautifully) -->
         <div class="user-profile-card">
+            <!-- Full Name (Hidden by default, shown when loaded) -->
+            <div class="profile-item" id="fullNameItem" style="display: none;">
+                <!-- User Icon -->
+                <svg class="profile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                <div class="profile-text">
+                    <span class="profile-label">ชื่อผู้แจ้ง (Full Name)</span>
+                    <span class="profile-value" id="fullNameDisplay">กำลังโหลด...</span>
+                </div>
+            </div>
+            <!-- Company (Hidden by default, shown when loaded) -->
+            <div class="profile-item" id="companyItem" style="display: none;">
+                <!-- Company Icon -->
+                <svg class="profile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 21h18M3 7V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2M5 21V7m14 13V7M9 21v-4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v4"></path>
+                </svg>
+                <div class="profile-text">
+                    <span class="profile-label">บริษัท (Company)</span>
+                    <span class="profile-value" id="companyDisplay">กำลังโหลด...</span>
+                </div>
+            </div>
+            <!-- Email -->
             <div class="profile-item">
                 <!-- Mail Icon -->
                 <svg class="profile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -49,6 +73,7 @@
                     <span class="profile-value" id="userEmailDisplay">กำลังโหลด...</span>
                 </div>
             </div>
+            <!-- Project -->
             <div class="profile-item">
                 <!-- Briefcase/Project Icon -->
                 <svg class="profile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -68,6 +93,8 @@
             <input type="hidden" id="lineUserId" name="lineUserId" value="">
             <input type="hidden" id="userEmail" name="userEmail" value="">
             <input type="hidden" id="project" name="project" value="">
+            <input type="hidden" id="fullNameInput" name="fullName" value="">
+            <input type="hidden" id="companyInput" name="company" value="">
 
             <!-- Subject -->
             <div class="form-group">
@@ -296,7 +323,8 @@
 
                 // Get User Profile
                 const profile = await liff.getProfile();
-                document.getElementById('lineUserId').value = profile.userId;
+                const userId = profile.userId;
+                document.getElementById('lineUserId').value = userId;
 
                 // Get Email from ID Token (Email scope must be enabled in LINE Developers Console)
                 const decodedIdToken = liff.getDecodedIDToken();
@@ -319,6 +347,9 @@
                 document.getElementById('project').value = projectName;
                 document.getElementById('projectDisplay').textContent = projectName;
 
+                // Fetch Full Name & Company from database
+                await fetchUserInfo(userId, userEmail);
+
             } catch (error) {
                 console.error("LIFF Initialization failed", error);
                 enableMockMode();
@@ -326,7 +357,7 @@
         }
 
         // Fallback mock mode for browser testing outside LINE app
-        function enableMockMode() {
+        async function enableMockMode() {
             document.getElementById('debugNotice').style.display = 'block';
             
             const mockUserId = 'U1234567890abcdef1234567890abcdef';
@@ -344,6 +375,60 @@
             
             document.getElementById('project').value = projectName;
             document.getElementById('projectDisplay').textContent = projectName;
+
+            // Fetch Full Name & Company from database
+            await fetchUserInfo(mockUserId, mockEmail);
+        }
+
+        // Fetch User Info (Full Name & Company) from backend
+        async function fetchUserInfo(userId, email) {
+            try {
+                // เรียกไปยัง n8n webhook เพื่อดึงข้อมูลผู้ใช้ (Full Name และ Company)
+                const response = await fetch(`${N8N_WEBHOOK_URL}?action=getUserInfo&lineUserId=${userId}&userEmail=${email}`, {
+                    method: 'GET'
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data) {
+                        if (data.fullName) {
+                            document.getElementById('fullNameDisplay').textContent = data.fullName;
+                            document.getElementById('fullNameItem').style.display = 'flex';
+                            document.getElementById('fullNameInput').value = data.fullName;
+                        } else {
+                            // Fallback to LINE display name
+                            await useLineProfileFallback();
+                        }
+
+                        if (data.company) {
+                            document.getElementById('companyDisplay').textContent = data.company;
+                            document.getElementById('companyItem').style.display = 'flex';
+                            document.getElementById('companyInput').value = data.company;
+                        }
+                    }
+                } else {
+                    await useLineProfileFallback();
+                }
+            } catch (error) {
+                console.error("Failed to fetch user info", error);
+                await useLineProfileFallback();
+            }
+        }
+
+        // Fallback: ใช้ชื่อผู้ใช้งานจาก LINE Profile แทนหากไม่พบในระบบ
+        async function useLineProfileFallback() {
+            try {
+                if (typeof liff !== 'undefined' && liff.isLoggedIn()) {
+                    const profile = await liff.getProfile();
+                    if (profile && profile.displayName) {
+                        document.getElementById('fullNameDisplay').textContent = profile.displayName + ' (LINE Profile)';
+                        document.getElementById('fullNameItem').style.display = 'flex';
+                        document.getElementById('fullNameInput').value = profile.displayName;
+                    }
+                }
+            } catch (e) {
+                console.warn("Failed to get LINE profile for fallback", e);
+            }
         }
 
         // Handle File Selection and Display Preview
@@ -507,6 +592,8 @@
             formData.append('lineUserId', document.getElementById('lineUserId').value);
             formData.append('userEmail', document.getElementById('userEmail').value);
             formData.append('project', document.getElementById('project').value);
+            formData.append('fullName', document.getElementById('fullNameInput').value);
+            formData.append('company', document.getElementById('companyInput').value);
             formData.append('subject', document.getElementById('subject').value);
             
             // Append link to description if present
