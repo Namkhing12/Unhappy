@@ -36,6 +36,11 @@
             <p>กรอกข้อมูลเพื่อแจ้งปัญหาสำหรับระบบ ERPNext</p>
         </div>
 
+        <!-- User Not Found in ERPNext Banner -->
+        <div id="userNotFoundNotice" class="warning-notice" style="display: none;">
+            <span>⚠️ <strong>ไม่พบข้อมูลผู้ใช้ในระบบ ERPNext:</strong> กรุณาแจ้งผู้ดูแลระบบเพื่อลงทะเบียนสิทธิ์ใช้งานในระบบ LineOA Contact ก่อนทำรายการแจ้งปัญหา</span>
+        </div>
+
         <!-- User Information Profile Card (Read-Only fields displayed beautifully) -->
         <div class="user-profile-card">
             <!-- Full Name -->
@@ -382,6 +387,7 @@
 
         // Fetch User Info (Full Name, Company, Project) from backend
         async function fetchUserInfo(userId, email) {
+            let success = false;
             try {
                 // เรียกไปยัง n8n webhook ด้วย POST (เนื่องจาก Webhook มักรองรับ POST เป็นหลัก)
                 const response = await fetch(N8N_WEBHOOK_URL, {
@@ -403,17 +409,18 @@
                         if (data.fullName) {
                             document.getElementById('fullNameDisplay').textContent = data.fullName;
                             document.getElementById('fullNameInput').value = data.fullName;
-                        } else {
-                            await useLineProfileFallback();
+                            success = true;
                         }
 
                         // 2. จัดการ Company
                         if (data.company) {
                             document.getElementById('companyDisplay').textContent = data.company;
                             document.getElementById('companyInput').value = data.company;
+                            success = success && true;
                         } else {
                             document.getElementById('companyDisplay').textContent = 'ไม่พบข้อมูลในระบบ';
                             document.getElementById('companyInput').value = '';
+                            success = false;
                         }
 
                         // 3. จัดการ Project (หาก ERPNext คืนค่าโครงการมา)
@@ -441,31 +448,39 @@
                             if (data.fullName) {
                                 document.getElementById('fullNameDisplay').textContent = data.fullName;
                                 document.getElementById('fullNameInput').value = data.fullName;
-                            } else {
-                                await useLineProfileFallback();
+                                success = true;
                             }
 
                             if (data.company) {
                                 document.getElementById('companyDisplay').textContent = data.company;
                                 document.getElementById('companyInput').value = data.company;
+                                success = success && true;
                             } else {
                                 document.getElementById('companyDisplay').textContent = 'ไม่พบข้อมูลในระบบ';
                                 document.getElementById('companyInput').value = '';
+                                success = false;
                             }
 
                             if (data.project) {
                                 document.getElementById('projectDisplay').textContent = data.project;
                                 document.getElementById('project').value = data.project;
                             }
-                            return; // ทำงานสำเร็จ
                         }
                     }
                 } catch (getErr) {
                     console.error("Failed to fetch user info via GET fallback", getErr);
                 }
+            }
 
+            // แสดง / ซ่อน แบนเนอร์แจ้งเตือนถ้าดึงข้อมูลไม่สำเร็จ
+            if (success) {
+                document.getElementById('userNotFoundNotice').style.display = 'none';
+            } else {
+                document.getElementById('userNotFoundNotice').style.display = 'flex';
                 await useLineProfileFallback();
-                document.getElementById('companyDisplay').textContent = 'ไม่พบข้อมูลในระบบ';
+                if (!document.getElementById('companyInput').value) {
+                    document.getElementById('companyDisplay').textContent = 'ไม่พบข้อมูลในระบบ';
+                }
             }
         }
 
