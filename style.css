@@ -650,19 +650,3 @@ textarea.input-control {
     margin-left: 12px;
     flex-shrink: 0;
 }
-
-/* Warning notice banner */
-.warning-notice {
-    background-color: #fffbeb;
-    border: 1px solid #fef3c7;
-    color: #b45309;
-    padding: 14px 16px;
-    font-size: 13px;
-    border-radius: 12px;
-    margin: 20px 20px 0 20px;
-    line-height: 1.6;
-    text-align: left;
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-}
