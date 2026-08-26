@@ -38,8 +38,8 @@
 
         <!-- User Information Profile Card (Read-Only fields displayed beautifully) -->
         <div class="user-profile-card">
-            <!-- Full Name (Hidden by default, shown when loaded) -->
-            <div class="profile-item" id="fullNameItem" style="display: none;">
+            <!-- Full Name -->
+            <div class="profile-item" id="fullNameItem">
                 <!-- User Icon -->
                 <svg class="profile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
@@ -50,8 +50,8 @@
                     <span class="profile-value" id="fullNameDisplay">กำลังโหลด...</span>
                 </div>
             </div>
-            <!-- Company (Hidden by default, shown when loaded) -->
-            <div class="profile-item" id="companyItem" style="display: none;">
+            <!-- Company -->
+            <div class="profile-item" id="companyItem">
                 <!-- Company Icon -->
                 <svg class="profile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M3 21h18M3 7V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2M5 21V7m14 13V7M9 21v-4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v4"></path>
@@ -380,10 +380,10 @@
             await fetchUserInfo(mockUserId, mockEmail);
         }
 
-        // Fetch User Info (Full Name & Company) from backend
+        // Fetch User Info (Full Name, Company, Project) from backend
         async function fetchUserInfo(userId, email) {
             try {
-                // เรียกไปยัง n8n webhook เพื่อดึงข้อมูลผู้ใช้ (Full Name และ Company)
+                // เรียกไปยัง n8n webhook เพื่อดึงข้อมูลผู้ใช้ (Full Name, Company และ Project)
                 const response = await fetch(`${N8N_WEBHOOK_URL}?action=getUserInfo&lineUserId=${userId}&userEmail=${email}`, {
                     method: 'GET'
                 });
@@ -391,27 +391,37 @@
                 if (response.ok) {
                     const data = await response.json();
                     if (data) {
+                        // 1. จัดการ Full Name
                         if (data.fullName) {
                             document.getElementById('fullNameDisplay').textContent = data.fullName;
-                            document.getElementById('fullNameItem').style.display = 'flex';
                             document.getElementById('fullNameInput').value = data.fullName;
                         } else {
-                            // Fallback to LINE display name
                             await useLineProfileFallback();
                         }
 
+                        // 2. จัดการ Company
                         if (data.company) {
                             document.getElementById('companyDisplay').textContent = data.company;
-                            document.getElementById('companyItem').style.display = 'flex';
                             document.getElementById('companyInput').value = data.company;
+                        } else {
+                            document.getElementById('companyDisplay').textContent = 'ไม่พบข้อมูลในระบบ';
+                            document.getElementById('companyInput').value = '';
+                        }
+
+                        // 3. จัดการ Project (หาก ERPNext คืนค่าโครงการมา)
+                        if (data.project) {
+                            document.getElementById('projectDisplay').textContent = data.project;
+                            document.getElementById('project').value = data.project;
                         }
                     }
                 } else {
                     await useLineProfileFallback();
+                    document.getElementById('companyDisplay').textContent = 'ไม่พบข้อมูลในระบบ (การเชื่อมต่อล้มเหลว)';
                 }
             } catch (error) {
                 console.error("Failed to fetch user info", error);
                 await useLineProfileFallback();
+                document.getElementById('companyDisplay').textContent = 'ไม่พบข้อมูลในระบบ (เกิดข้อผิดพลาด)';
             }
         }
 
@@ -422,12 +432,14 @@
                     const profile = await liff.getProfile();
                     if (profile && profile.displayName) {
                         document.getElementById('fullNameDisplay').textContent = profile.displayName + ' (LINE Profile)';
-                        document.getElementById('fullNameItem').style.display = 'flex';
                         document.getElementById('fullNameInput').value = profile.displayName;
                     }
+                } else {
+                    document.getElementById('fullNameDisplay').textContent = 'ไม่พบข้อมูลชื่อผู้แจ้ง';
                 }
             } catch (e) {
                 console.warn("Failed to get LINE profile for fallback", e);
+                document.getElementById('fullNameDisplay').textContent = 'ไม่พบข้อมูลชื่อผู้แจ้ง';
             }
         }
 
