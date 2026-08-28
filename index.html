@@ -322,6 +322,7 @@
     <script>
         // CONFIGURATION: ใส่ค่า n8n Webhook URL และ LINE LIFF ID ของคุณที่นี่
         const N8N_WEBHOOK_URL = 'https://n8n.arterypartner.dev/webhook/line-router';
+        const N8N_GET_USER_INFO_URL = 'https://n8n.arterypartner.dev/webhook/get-user-info';
         const LIFF_ID = '2010806104-lwUaZlcq'; // เปลี่ยนเป็น LIFF ID ของคุณ (รองรับทั้ง ID และ URL ของ LIFF)
 
         // State variables
@@ -400,29 +401,19 @@
             await fetchUserInfo(mockUserId, mockEmail);
         }
 
-        // Fetch User Info (Full Name, Company, Email, Project) from backend
+        // Fetch User Info (Full Name, Company, Email, Project) from database
         async function fetchUserInfo(userId, email) {
             try {
-                // เรียกไปยัง n8n webhook ด้วย POST (เนื่องจาก Webhook มักรองรับ POST เป็นหลัก)
-                const response = await fetch(N8N_WEBHOOK_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        action: 'getUserInfo',
-                        lineUserId: userId,
-                        userEmail: email
-                    })
-                });
+                // เรียกไปยัง n8n webhook ใหม่ด้วย GET เพื่อดึงข้อมูลผู้ใช้จาก LineOA Contact
+                const response = await fetch(`${N8N_GET_USER_INFO_URL}?userId=${userId}`);
 
                 if (response.ok) {
                     const data = await response.json();
-                    if (data) {
+                    if (data && (data.full_name || data.email)) {
                         // 1. จัดการ Full Name
-                        if (data.fullName) {
-                            document.getElementById('fullNameDisplay').textContent = data.fullName;
-                            document.getElementById('fullNameInput').value = data.fullName;
+                        if (data.full_name) {
+                            document.getElementById('fullNameDisplay').textContent = data.full_name;
+                            document.getElementById('fullNameInput').value = data.full_name;
                         } else {
                             document.getElementById('fullNameDisplay').textContent = 'ไม่พบข้อมูลในระบบ';
                             document.getElementById('fullNameInput').value = '';
@@ -454,75 +445,29 @@
                             document.getElementById('projectDisplay').textContent = 'ไม่พบข้อมูลในระบบ';
                             document.getElementById('project').value = '';
                         }
+                        return; // ทำงานสำเร็จ ดึงข้อมูลเรียบร้อย
                     }
-                } else {
-                    // หาก POST ตอบกลับมีค่าสถานะไม่สำเร็จ ลองเรียกด้วย GET
-                    throw new Error("POST request returned non-OK status");
                 }
+                
+                // หากไม่พบข้อมูล (ข้อมูลว่างหรือไม่มีสิทธิ์)
+                alert("⚠️ ไม่พบข้อมูลการลงทะเบียนของคุณในระบบ กรุณาลงทะเบียนก่อนใช้งาน");
+                setFieldsNotFound();
             } catch (error) {
-                console.warn("Failed to fetch user info via POST, trying GET fallback...", error);
-
-                // ลอง fallback ด้วย GET ในกรณีที่หลังบ้านตั้งค่าแบบ GET ไว้
-                try {
-                    const getResponse = await fetch(`${N8N_WEBHOOK_URL}?action=getUserInfo&lineUserId=${userId}&userEmail=${email}`, {
-                        method: 'GET'
-                    });
-
-                    if (getResponse.ok) {
-                        const data = await getResponse.json();
-                        if (data) {
-                            // 1. Full Name
-                            if (data.fullName) {
-                                document.getElementById('fullNameDisplay').textContent = data.fullName;
-                                document.getElementById('fullNameInput').value = data.fullName;
-                            } else {
-                                document.getElementById('fullNameDisplay').textContent = 'ไม่พบข้อมูลในระบบ';
-                                document.getElementById('fullNameInput').value = '';
-                            }
-
-                            // 2. Company
-                            if (data.company) {
-                                document.getElementById('companyDisplay').textContent = data.company;
-                                document.getElementById('companyInput').value = data.company;
-                            } else {
-                                document.getElementById('companyDisplay').textContent = 'ไม่พบข้อมูลในระบบ';
-                                document.getElementById('companyInput').value = '';
-                            }
-
-                            // 3. Email
-                            if (data.email) {
-                                document.getElementById('userEmailDisplay').textContent = data.email;
-                                document.getElementById('userEmail').value = data.email;
-                            } else {
-                                document.getElementById('userEmailDisplay').textContent = 'ไม่พบข้อมูลในระบบ';
-                                document.getElementById('userEmail').value = '';
-                            }
-
-                            // 4. Project
-                            if (data.project) {
-                                document.getElementById('projectDisplay').textContent = data.project;
-                                document.getElementById('project').value = data.project;
-                            } else {
-                                document.getElementById('projectDisplay').textContent = 'ไม่พบข้อมูลในระบบ';
-                                document.getElementById('project').value = '';
-                            }
-                            return; // ทำงานสำเร็จ
-                        }
-                    }
-                } catch (getErr) {
-                    console.error("Failed to fetch user info via GET fallback", getErr);
-                }
-
-                // หากดึงไม่สำเร็จทั้งหมด ให้แสดง "ไม่พบข้อมูลในระบบ"
-                document.getElementById('fullNameDisplay').textContent = 'ไม่พบข้อมูลในระบบ';
-                document.getElementById('fullNameInput').value = '';
-                document.getElementById('companyDisplay').textContent = 'ไม่พบข้อมูลในระบบ';
-                document.getElementById('companyInput').value = '';
-                document.getElementById('userEmailDisplay').textContent = 'ไม่พบข้อมูลในระบบ';
-                document.getElementById('userEmail').value = '';
-                document.getElementById('projectDisplay').textContent = 'ไม่พบข้อมูลในระบบ';
-                document.getElementById('project').value = '';
+                console.error("Failed to fetch user info via GET", error);
+                setFieldsNotFound();
             }
+        }
+
+        // ฟังก์ชันกำหนดค่าเป็น 'ไม่พบข้อมูลในระบบ' เมื่อเกิดข้อผิดพลาดหรือหาข้อมูลไม่เจอ
+        function setFieldsNotFound() {
+            document.getElementById('fullNameDisplay').textContent = 'ไม่พบข้อมูลในระบบ';
+            document.getElementById('fullNameInput').value = '';
+            document.getElementById('companyDisplay').textContent = 'ไม่พบข้อมูลในระบบ';
+            document.getElementById('companyInput').value = '';
+            document.getElementById('userEmailDisplay').textContent = 'ไม่พบข้อมูลในระบบ';
+            document.getElementById('userEmail').value = '';
+            document.getElementById('projectDisplay').textContent = 'ไม่พบข้อมูลในระบบ';
+            document.getElementById('project').value = '';
         }
 
         // Handle File Selection and Display Preview
