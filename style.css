@@ -870,10 +870,10 @@ textarea.input-control {
 }
 
 /* ============================================================
-   RESULT SCREENS (FIXED MODAL OVERLAY - NEVER SHOWS IN PAGE FLOW)
+   SUCCESS SCREEN MODAL (HIDDEN BY DEFAULT)
    ============================================================ */
 .result-screen {
-    display: none; /* Completely hidden when not active */
+    display: none; /* Completely hidden from flow */
     position: fixed;
     top: 0;
     left: 0;
