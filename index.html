@@ -163,7 +163,7 @@
                         <circle cx="12" cy="12" r="10"></circle>
                         <polyline points="12 6 12 12 14 14"></polyline>
                     </svg>
-                    <textarea id="actionGoal" class="input-control" required style="min-height: 85px;"
+                    <textarea id="actionGoal" class="input-control" required
                         placeholder="ระบุสิ่งที่ตั้งใจจะดำเนินการให้สำเร็จ เช่น ต้องการกดยืนยันใบสั่งซื้อเพื่อส่งต่อให้แผนกจัดซื้ออนุมัติ..."></textarea>
                 </div>
                 <ul class="help-list">
@@ -256,7 +256,7 @@
                         <polygon points="14 2 18 6 7 17 3 17 3 13 14 2"></polygon>
                         <line x1="3" y1="22" x2="21" y2="22"></line>
                     </svg>
-                    <textarea id="reproduceSteps" class="input-control" required style="min-height: 120px;"
+                    <textarea id="reproduceSteps" class="input-control" required style="min-height: 110px;"
                         placeholder="1. ไปที่เมนู...&#10;2. เลือกรายการเอกสาร...&#10;3. กดปุ่มบันทึก/ยืนยัน...&#10;4. เกิด Error แจ้งเตือนว่า..."></textarea>
                 </div>
                 <ul class="help-list">
@@ -264,7 +264,7 @@
                 </ul>
             </div>
 
-            <!-- 5. Mandatory Screenshot of Error (Mandatory) -->
+            <!-- 5. Error Evidence: Multi-Screenshot OR Multi-Link (Mandatory: At least one) -->
             <div class="form-group">
                 <div class="field-label-wrapper">
                     <div class="label-left">
@@ -273,117 +273,113 @@
                             <circle cx="8.5" cy="8.5" r="1.5"></circle>
                             <polyline points="21 15 16 10 5 21"></polyline>
                         </svg>
-                        <label>5. ภาพถ่ายหน้าจอตอนเกิด Error (Screenshot) <span class="asterisk">*</span></label>
+                        <label>5. หลักฐานตอนเกิด Error (ภาพหน้าจอ / ลิงก์) <span class="asterisk">*</span></label>
                     </div>
-                    <span class="badge-mandatory">บังคับแนบ</span>
+                    <span class="badge-mandatory">บังคับแนบอย่างใดอย่างหนึ่ง</span>
                 </div>
 
-                <input type="file" id="screenshotInput" accept="image/*" style="display: none;" onchange="handleScreenshotSelect(event)">
-
-                <div class="upload-dropzone" id="screenshotDropzone" onclick="document.getElementById('screenshotInput').click()">
-                    <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
-                        <circle cx="12" cy="13" r="4"></circle>
-                    </svg>
-                    <span class="upload-title">แตะเพื่อถ่ายรูป หรือ เลือกภาพหน้าจอ Error</span>
-                    <span class="upload-sub">รองรับไฟล์รูปภาพ PNG, JPG, JPEG (บังคับแนบ 1 ภาพ)</span>
-                </div>
-
-                <!-- Screenshot Preview Card -->
-                <div class="media-preview-card" id="screenshotPreviewCard" style="display: none;">
-                    <img src="" alt="Screenshot Error Preview" class="image-preview-element" id="screenshotPreviewImg">
-                    <div class="preview-footer">
-                        <span class="preview-file-name" id="screenshotFileName">image.png</span>
-                        <button type="button" class="preview-remove-btn" onclick="clearScreenshot()">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px;">
-                                <polyline points="3 6 5 6 21 6"></polyline>
-                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                <div class="evidence-card-container" id="evidenceContainer">
+                    <!-- Action Row: Upload Images or Add Links -->
+                    <div class="evidence-action-row">
+                        <button type="button" class="evidence-btn" onclick="document.getElementById('screenshotMultiInput').click()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                                <circle cx="12" cy="13" r="4"></circle>
                             </svg>
-                            ลบ / เปลี่ยนรูป
+                            <span>+ แนบภาพหน้าจอ (หลายรูป)</span>
                         </button>
+                        <button type="button" class="evidence-btn" onclick="toggleEvidenceLinkInput()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                            </svg>
+                            <span>+ แนบลิงก์หลักฐาน</span>
+                        </button>
+                    </div>
+
+                    <!-- Hidden Multi-file input for Screenshots -->
+                    <input type="file" id="screenshotMultiInput" accept="image/*" multiple style="display: none;" onchange="handleMultiScreenshotSelect(event)">
+
+                    <!-- Drag & Drop Zone (shown when 0 images) -->
+                    <div class="upload-dropzone" id="screenshotDropzone" onclick="document.getElementById('screenshotMultiInput').click()">
+                        <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                            <circle cx="12" cy="13" r="4"></circle>
+                        </svg>
+                        <span class="upload-title">แตะเพื่อถ่ายรูป หรือ เลือกภาพหน้าจอ Error</span>
+                        <span class="upload-sub">สามารถเลือกได้หลายภาพพร้อมกัน (PNG, JPG, JPEG)</span>
+                    </div>
+
+                    <!-- Image Gallery Grid (Renders selected screenshots) -->
+                    <div class="images-gallery-grid" id="imageGalleryGrid" style="display: none;"></div>
+
+                    <!-- Link Input Box (Toggleable) -->
+                    <div class="link-input-box" id="linkInputBox" style="display: none;">
+                        <div class="link-input-row">
+                            <div class="input-wrapper">
+                                <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                                </svg>
+                                <input type="url" id="linkInputField" class="input-control"
+                                    placeholder="วางลิงก์ เช่น Google Drive, Cloud Image, Loom..."
+                                    onkeypress="if(event.key === 'Enter') { event.preventDefault(); addEvidenceLink(); }">
+                            </div>
+                            <button type="button" class="btn-add-link" onclick="addEvidenceLink()">+ เพิ่มลิงก์</button>
+                        </div>
+                    </div>
+
+                    <!-- Evidence Links List -->
+                    <div class="evidence-links-list" id="evidenceLinksList" style="display: none;"></div>
+
+                    <!-- Evidence Status Indicator Badge -->
+                    <div class="evidence-status-banner empty" id="evidenceStatusBanner">
+                        <svg class="evidence-status-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="8" x2="12" y2="12"></line>
+                            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                        </svg>
+                        <span id="evidenceStatusText">ยังไม่ได้แนบหลักฐาน (กรุณาแนบภาพหน้าจอ หรือ ลิงก์อย่างน้อย 1 รายการ)</span>
                     </div>
                 </div>
 
                 <ul class="help-list" style="margin-top: 8px;">
-                    <li>เพื่อให้เห็นลักษณะข้อความ Error หรือรหัสแจ้งเตือนที่แสดงผลบนหน้าจอ</li>
+                    <li>สามารถแนบภาพถ่ายหน้าจอได้หลายภาพ หรือแนบลิงก์ Google Drive / ลิงก์รูปภาพได้หลายรายการ</li>
                 </ul>
             </div>
 
-            <!-- 6. Optional Media (Video Attachment & Link) -->
+            <!-- 6. Optional Video Attachment -->
             <div class="form-group">
                 <div class="field-label-wrapper">
                     <div class="label-left">
                         <svg class="label-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
-                        </svg>
-                        <label>6. สื่อบันทึกปัญหาเพิ่มเติม (Attachments)</label>
-                    </div>
-                    <span class="badge-optional">ทางเลือกเสริม</span>
-                </div>
-
-                <div class="optional-attachments-grid">
-                    <!-- Video Option Button -->
-                    <div class="optional-attach-btn" id="attachVideoBtn" onclick="document.getElementById('videoInput').click()">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
                             <polygon points="23 7 16 12 23 17 23 7"></polygon>
                             <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
                         </svg>
-                        <span>แนบคลิปวิดีโอ</span>
+                        <label>6. สื่อวิดีโอบันทึกปัญหา (Video Clip)</label>
                     </div>
-
-                    <!-- Link Option Button -->
-                    <div class="optional-attach-btn" id="attachLinkBtn" onclick="toggleLinkInput()">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
-                            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
-                        </svg>
-                        <span>แนบลิงก์เสริม</span>
-                    </div>
+                    <span class="badge-optional">ทางเลือกเสริม</span>
                 </div>
 
                 <!-- Hidden Video File Input -->
                 <input type="file" id="videoInput" accept="video/mp4,video/quicktime,video/webm,video/*"
                     style="display: none;" onchange="handleVideoSelect(event)">
 
+                <div class="video-upload-box" id="videoUploadBox" onclick="document.getElementById('videoInput').click()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="23 7 16 12 23 17 23 7"></polygon>
+                        <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
+                    </svg>
+                    <span>แตะเพื่อแนบคลิปวิดีโอ (MP4, MOV, WEBM)</span>
+                </div>
+
                 <!-- Video Preview Card -->
-                <div class="media-preview-card" id="videoPreviewCard" style="display: none;">
+                <div class="video-preview-card" id="videoPreviewCard" style="display: none;">
                     <video controls class="video-preview-element" id="videoPreviewElement"></video>
-                    <div class="preview-footer">
-                        <span class="preview-file-name" id="videoFileName">video.mp4</span>
-                        <button type="button" class="preview-remove-btn" onclick="clearVideo()">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px;">
-                                <polyline points="3 6 5 6 21 6"></polyline>
-                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                            </svg>
-                            ลบวิดีโอ
-                        </button>
+                    <div class="video-footer">
+                        <span class="video-file-title" id="videoFileName">video.mp4</span>
+                        <button type="button" class="video-remove-btn" onclick="clearVideo()">ลบคลิปวิดีโอ</button>
                     </div>
-                </div>
-
-                <!-- Link Input Area -->
-                <div class="link-input-container" id="linkInputContainer" style="display: none;">
-                    <div class="input-wrapper" style="border-radius: 12px;">
-                        <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                            stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
-                            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
-                        </svg>
-                        <input type="url" id="linkInput" class="input-control"
-                            placeholder="วางลิงก์ เช่น Google Drive, Loom หรือ เอกสาร..." onblur="handleLinkInput(this.value)"
-                            onkeypress="if(event.key === 'Enter') { event.preventDefault(); handleLinkInput(this.value); }">
-                    </div>
-                </div>
-
-                <!-- Link Preview Badge -->
-                <div class="link-preview-badge" id="linkPreviewBadge" style="display: none;">
-                    <div class="link-badge-content">
-                        <svg viewBox="0 0 24 24" class="link-badge-icon" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
-                            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
-                        </svg>
-                        <a href="#" target="_blank" id="linkPreviewUrl" class="link-text">https://example.com</a>
-                    </div>
-                    <button type="button" class="remove-link-btn" onclick="clearLinkSelection()">ลบลิงก์</button>
                 </div>
 
                 <ul class="help-list" style="margin-top: 8px;">
@@ -462,8 +458,9 @@
         const LIFF_ID = '2010806104-lwUaZlcq';
 
         // State variables
-        let selectedScreenshot = null;
-        let selectedVideo = null;
+        let selectedScreenshots = []; // Array of File objects
+        let errorLinks = [];          // Array of Link strings
+        let selectedVideo = null;     // File object or null
         let hasDocument = true;
 
         // Initialize LIFF App
@@ -634,113 +631,184 @@
             document.getElementById('reproduceSteps').value = '';
         }
 
-        // Handle Screenshot Selection (Mandatory)
-        function handleScreenshotSelect(event) {
-            const files = event.target.files;
+        // ============================================================
+        // SECTION 5: MULTI-IMAGE SCREENSHOTS & EVIDENCE LINKS LOGIC
+        // ============================================================
+
+        // Handle Multiple Screenshots Selection
+        function handleMultiScreenshotSelect(event) {
+            const files = Array.from(event.target.files);
             if (files.length === 0) return;
 
-            const file = files[0];
-            if (!file.type.startsWith('image/')) {
-                alert('กรุณาเลือกไฟล์ภาพถ่ายหน้าจอที่เป็นรูปภาพ (PNG, JPG, JPEG)');
+            const validImages = files.filter(f => f.type.startsWith('image/'));
+            if (validImages.length === 0) {
+                alert('กรุณาเลือกไฟล์ภาพถ่ายหน้าจอ (PNG, JPG, JPEG)');
                 return;
             }
 
-            selectedScreenshot = file;
-            document.getElementById('screenshotDropzone').classList.remove('error-border');
-
-            let fileSizeStr = file.size > 1024 * 1024 
-                ? (file.size / (1024 * 1024)).toFixed(2) + ' MB' 
-                : (file.size / 1024).toFixed(2) + ' KB';
-
-            document.getElementById('screenshotFileName').textContent = `${file.name} (${fileSizeStr})`;
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                document.getElementById('screenshotPreviewImg').src = e.target.result;
-                document.getElementById('screenshotDropzone').style.display = 'none';
-                document.getElementById('screenshotPreviewCard').style.display = 'block';
-            };
-            reader.readAsDataURL(file);
+            // Append newly selected files to array
+            selectedScreenshots = selectedScreenshots.concat(validImages);
+            renderScreenshotGallery();
+            updateEvidenceStatus();
+            document.getElementById('screenshotMultiInput').value = ''; // Reset input to allow adding same files again if needed
         }
 
-        function clearScreenshot() {
-            selectedScreenshot = null;
-            document.getElementById('screenshotInput').value = '';
-            document.getElementById('screenshotPreviewImg').src = '';
-            document.getElementById('screenshotPreviewCard').style.display = 'none';
-            document.getElementById('screenshotDropzone').style.display = 'flex';
-        }
+        // Render Screenshot Gallery UI
+        function renderScreenshotGallery() {
+            const gallery = document.getElementById('imageGalleryGrid');
+            const dropzone = document.getElementById('screenshotDropzone');
 
-        // Handle Video Selection (Optional)
-        function handleVideoSelect(event) {
-            const files = event.target.files;
-            if (files.length === 0) return;
+            gallery.innerHTML = '';
 
-            const file = files[0];
-            if (!file.type.startsWith('video/')) {
-                alert('กรุณาเลือกไฟล์วิดีโอ (MP4, MOV, WEBM)');
+            if (selectedScreenshots.length === 0) {
+                gallery.style.display = 'none';
+                dropzone.style.display = 'flex';
                 return;
             }
 
-            // Check size (e.g. max 50MB)
-            if (file.size > 50 * 1024 * 1024) {
-                alert('ไฟล์วิดีโอมีขนาดใหญ่เกิน 50MB กรุณาเลือกไฟล์ที่มีขนาดเล็กลง หรือแนบเป็นลิงก์ Google Drive');
-                return;
-            }
+            gallery.style.display = 'grid';
+            dropzone.style.display = 'none';
 
-            selectedVideo = file;
-            let fileSizeStr = (file.size / (1024 * 1024)).toFixed(2) + ' MB';
-            document.getElementById('videoFileName').textContent = `${file.name} (${fileSizeStr})`;
+            selectedScreenshots.forEach((file, index) => {
+                const card = document.createElement('div');
+                card.className = 'image-thumb-card';
 
-            const videoElement = document.getElementById('videoPreviewElement');
-            videoElement.src = URL.createObjectURL(file);
-            document.getElementById('videoPreviewCard').style.display = 'block';
+                const sizeStr = file.size > 1024 * 1024 
+                    ? (file.size / (1024 * 1024)).toFixed(2) + ' MB' 
+                    : (file.size / 1024).toFixed(1) + ' KB';
+
+                const img = document.createElement('img');
+                img.className = 'image-thumb-preview';
+                img.alt = file.name;
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+
+                const info = document.createElement('div');
+                info.className = 'image-thumb-info';
+                info.innerHTML = `
+                    <span class="image-thumb-name" title="${file.name}">${file.name}</span>
+                    <span class="image-thumb-size">${sizeStr}</span>
+                `;
+
+                const deleteBtn = document.createElement('button');
+                deleteBtn.type = 'button';
+                deleteBtn.className = 'image-delete-btn';
+                deleteBtn.title = 'ลบภาพนี้';
+                deleteBtn.innerHTML = `
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                `;
+                deleteBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    removeScreenshot(index);
+                };
+
+                card.appendChild(img);
+                card.appendChild(info);
+                card.appendChild(deleteBtn);
+                gallery.appendChild(card);
+            });
         }
 
-        function clearVideo() {
-            selectedVideo = null;
-            document.getElementById('videoInput').value = '';
-            const videoElement = document.getElementById('videoPreviewElement');
-            videoElement.pause();
-            videoElement.src = '';
-            document.getElementById('videoPreviewCard').style.display = 'none';
+        function removeScreenshot(index) {
+            selectedScreenshots.splice(index, 1);
+            renderScreenshotGallery();
+            updateEvidenceStatus();
         }
 
-        // Toggle Link Input
-        function toggleLinkInput() {
-            const container = document.getElementById('linkInputContainer');
-            const isHidden = container.style.display === 'none';
-            container.style.display = isHidden ? 'block' : 'none';
+        // Toggle Evidence Link Input
+        function toggleEvidenceLinkInput() {
+            const box = document.getElementById('linkInputBox');
+            const isHidden = box.style.display === 'none';
+            box.style.display = isHidden ? 'block' : 'none';
             if (isHidden) {
-                document.getElementById('linkInput').focus();
+                document.getElementById('linkInputField').focus();
             }
         }
 
-        function handleLinkInput(value) {
-            if (!value || !value.trim()) return;
+        // Add Evidence Link
+        function addEvidenceLink() {
+            const input = document.getElementById('linkInputField');
+            let url = input.value.trim();
+            if (!url) return;
 
-            let displayUrl = value.trim();
-            if (!/^https?:\/\//i.test(displayUrl)) {
-                displayUrl = 'https://' + displayUrl;
+            if (!/^https?:\/\//i.test(url)) {
+                url = 'https://' + url;
             }
 
-            const previewUrlEl = document.getElementById('linkPreviewUrl');
-            previewUrlEl.href = displayUrl;
-            previewUrlEl.textContent = displayUrl;
-
-            document.getElementById('linkPreviewBadge').style.display = 'flex';
-            document.getElementById('linkInputContainer').style.display = 'none';
+            errorLinks.push(url);
+            input.value = '';
+            renderEvidenceLinks();
+            updateEvidenceStatus();
         }
 
-        function clearLinkSelection() {
-            document.getElementById('linkInput').value = '';
-            document.getElementById('linkPreviewBadge').style.display = 'none';
-            document.getElementById('linkInputContainer').style.display = 'none';
+        // Render Evidence Links List
+        function renderEvidenceLinks() {
+            const container = document.getElementById('evidenceLinksList');
+            container.innerHTML = '';
+
+            if (errorLinks.length === 0) {
+                container.style.display = 'none';
+                return;
+            }
+
+            container.style.display = 'flex';
+
+            errorLinks.forEach((link, index) => {
+                const item = document.createElement('div');
+                item.className = 'evidence-link-item';
+                item.innerHTML = `
+                    <div class="evidence-link-content">
+                        <svg viewBox="0 0 24 24" class="evidence-link-icon" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                        </svg>
+                        <a href="${link}" target="_blank" class="evidence-link-url">${link}</a>
+                    </div>
+                    <button type="button" class="evidence-link-delete" onclick="removeEvidenceLink(${index})">ลบ</button>
+                `;
+                container.appendChild(item);
+            });
         }
 
-        // Drag & Drop event handlers for Screenshot
+        function removeEvidenceLink(index) {
+            errorLinks.splice(index, 1);
+            renderEvidenceLinks();
+            updateEvidenceStatus();
+        }
+
+        // Update Live Status Banner
+        function updateEvidenceStatus() {
+            const banner = document.getElementById('evidenceStatusBanner');
+            const statusText = document.getElementById('evidenceStatusText');
+            const container = document.getElementById('evidenceContainer');
+
+            const imgCount = selectedScreenshots.length;
+            const linkCount = errorLinks.length;
+
+            if (imgCount > 0 || linkCount > 0) {
+                banner.className = 'evidence-status-banner valid';
+                container.classList.remove('has-error-border');
+
+                let parts = [];
+                if (imgCount > 0) parts.push(`ภาพหน้าจอ ${imgCount} รูป`);
+                if (linkCount > 0) parts.push(`ลิงก์ ${linkCount} รายการ`);
+
+                statusText.innerHTML = `✅ แนบหลักฐานแล้ว: <strong>${parts.join(', ')}</strong>`;
+            } else {
+                banner.className = 'evidence-status-banner empty';
+                statusText.textContent = 'ยังไม่ได้แนบหลักฐาน (กรุณาแนบภาพหน้าจอ หรือ ลิงก์อย่างน้อย 1 รายการ)';
+            }
+        }
+
+        // Drag & Drop for Screenshot Dropzone
         const screenshotDropzone = document.getElementById('screenshotDropzone');
-
         ['dragenter', 'dragover'].forEach(eventName => {
             screenshotDropzone.addEventListener(eventName, (e) => {
                 e.preventDefault();
@@ -761,21 +829,60 @@
             const dt = e.dataTransfer;
             const files = dt.files;
             if (files.length > 0) {
-                document.getElementById('screenshotInput').files = files;
-                handleScreenshotSelect({ target: { files: files } });
+                handleMultiScreenshotSelect({ target: { files: files } });
             }
         }, false);
 
-        // Submit Form to n8n Webhook
+        // ============================================================
+        // SECTION 6: VIDEO LOGIC
+        // ============================================================
+        function handleVideoSelect(event) {
+            const files = event.target.files;
+            if (files.length === 0) return;
+
+            const file = files[0];
+            if (!file.type.startsWith('video/')) {
+                alert('กรุณาเลือกไฟล์วิดีโอ (MP4, MOV, WEBM)');
+                return;
+            }
+
+            if (file.size > 50 * 1024 * 1024) {
+                alert('ไฟล์วิดีโอมีขนาดใหญ่เกิน 50MB กรุณาเลือกไฟล์ที่มีขนาดเล็กลง หรือแนบเป็นลิงก์ Google Drive แทน');
+                return;
+            }
+
+            selectedVideo = file;
+            let fileSizeStr = (file.size / (1024 * 1024)).toFixed(2) + ' MB';
+            document.getElementById('videoFileName').textContent = `${file.name} (${fileSizeStr})`;
+
+            const videoElement = document.getElementById('videoPreviewElement');
+            videoElement.src = URL.createObjectURL(file);
+            document.getElementById('videoPreviewCard').style.display = 'block';
+            document.getElementById('videoUploadBox').style.display = 'none';
+        }
+
+        function clearVideo() {
+            selectedVideo = null;
+            document.getElementById('videoInput').value = '';
+            const videoElement = document.getElementById('videoPreviewElement');
+            videoElement.pause();
+            videoElement.src = '';
+            document.getElementById('videoPreviewCard').style.display = 'none';
+            document.getElementById('videoUploadBox').style.display = 'flex';
+        }
+
+        // ============================================================
+        // FORM SUBMISSION & DATA AGGREGATION
+        // ============================================================
         async function submitForm(event) {
             event.preventDefault();
 
-            // Validate Mandatory Screenshot
-            if (!selectedScreenshot) {
-                alert('⚠️ กรุณาแนบภาพถ่ายหน้าจอตอนเกิด Error (Screenshot) ก่อนส่งรายงานปัญหา');
-                const dropzone = document.getElementById('screenshotDropzone');
-                dropzone.classList.add('error-border');
-                dropzone.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            // Validate Mandatory Evidence: At least 1 screenshot OR 1 link
+            if (selectedScreenshots.length === 0 && errorLinks.length === 0) {
+                alert('⚠️ กรุณาแนบหลักฐานตอนเกิด Error อย่างน้อย 1 รายการ (แนบไฟล์ภาพหน้าจอ หรือ แนบลิงก์)');
+                const container = document.getElementById('evidenceContainer');
+                container.classList.add('has-error-border');
+                container.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 return;
             }
 
@@ -795,9 +902,17 @@
             const documentNo = hasDocument ? (document.getElementById('documentNo').value.trim() || 'ไม่ระบุ') : 'ไม่มี (ไม่เกี่ยวกับเอกสารเฉพาะ)';
             const reproduceSteps = document.getElementById('reproduceSteps').value.trim();
             
-            const attachmentLink = (document.getElementById('linkPreviewBadge').style.display !== 'none')
-                ? document.getElementById('linkPreviewUrl').textContent
-                : '';
+            // Format screenshots list text
+            let screenshotsText = 'ไม่มี';
+            if (selectedScreenshots.length > 0) {
+                screenshotsText = selectedScreenshots.map((f, i) => `${i + 1}. แนบไฟล์: ${f.name} (${(f.size / 1024).toFixed(1)} KB)`).join('\n');
+            }
+
+            // Format links list text
+            let linksText = 'ไม่มี';
+            if (errorLinks.length > 0) {
+                linksText = errorLinks.map((link, i) => `${i + 1}. ${link}`).join('\n');
+            }
 
             // Aggregate all fields into the unified Description payload for HD Ticket
             const aggregatedDescription = 
@@ -814,14 +929,14 @@ ${documentNo}
 🔄 ขั้นตอนการเกิดปัญหา (Steps to Reproduce):
 ${reproduceSteps}
 
-📸 ภาพถ่ายหน้าจอ Error (Screenshot):
-แนบไฟล์: ${selectedScreenshot.name}
+📸 ภาพถ่ายหน้าจอ Error (Screenshots - ${selectedScreenshots.length} ไฟล์):
+${screenshotsText}
+
+🔗 ลิงก์หลักฐาน Error (Evidence Links - ${errorLinks.length} รายการ):
+${linksText}
 
 🎥 วิดีโอบันทึกปัญหา (Video Clip):
 ${selectedVideo ? `แนบไฟล์: ${selectedVideo.name}` : 'ไม่มี'}
-
-🔗 ลิงก์แนบเพิ่มเติม:
-${attachmentLink || 'ไม่มี'}
 
 ------------------------------------------------------
 ℹ️ ข้อมูลระบบ:
@@ -842,18 +957,25 @@ ${attachmentLink || 'ไม่มี'}
             formData.append('subject', subject);
             formData.append('description', aggregatedDescription);
 
-            // Append detailed fields individually as well (for flexible n8n processing)
             formData.append('actionGoal', actionGoal);
             formData.append('documentNo', documentNo);
             formData.append('reproduceSteps', reproduceSteps);
 
-            if (attachmentLink) {
-                formData.append('attachmentLink', attachmentLink);
-            }
+            // Append all screenshots to FormData
+            selectedScreenshots.forEach((file, index) => {
+                formData.append('attachments[]', file, file.name);
+                formData.append(`screenshot_${index + 1}`, file, file.name);
+                if (index === 0) {
+                    formData.append('attachment', file, file.name);
+                    formData.append('screenshot', file, file.name);
+                }
+            });
 
-            // Append Mandatory Screenshot
-            formData.append('attachment', selectedScreenshot, selectedScreenshot.name);
-            formData.append('screenshot', selectedScreenshot, selectedScreenshot.name);
+            // Append all error links to FormData
+            if (errorLinks.length > 0) {
+                formData.append('errorLinks', JSON.stringify(errorLinks));
+                formData.append('attachmentLink', errorLinks[0]);
+            }
 
             // Append Optional Video if selected
             if (selectedVideo) {
@@ -906,9 +1028,13 @@ ${attachmentLink || 'ไม่มี'}
             document.getElementById('documentNo').value = '';
             document.getElementById('reproduceSteps').value = '';
             setDocumentChoice(true);
-            clearScreenshot();
+            
+            selectedScreenshots = [];
+            errorLinks = [];
+            renderScreenshotGallery();
+            renderEvidenceLinks();
+            updateEvidenceStatus();
             clearVideo();
-            clearLinkSelection();
 
             document.getElementById('successScreen').classList.remove('active');
             document.getElementById('errorScreen').classList.remove('active');
