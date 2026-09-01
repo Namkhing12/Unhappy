@@ -21,11 +21,6 @@
 <body>
 
     <div class="container">
-        <!-- Debug Mode Banner (Visible in standard web browsers for testing) -->
-        <div id="debugNotice" class="debug-notice">
-            ⚠️ <strong>Developer Mode:</strong> ตรวจไม่พบสภาพแวดล้อม LINE LIFF
-            (ระบบเปิดโหมดจำลองข้อมูลผู้ใช้ให้เพื่อการทดสอบ)
-        </div>
 
         <!-- Curved LINE Green Header -->
         <div class="header-banner">
@@ -421,28 +416,12 @@
                 await fetchUserInfo(userId, userEmail);
 
             } catch (error) {
-                console.error("LIFF Initialization failed, enabling Mock Mode:", error);
-                enableMockMode();
+                console.error("LIFF Initialization failed:", error);
+                document.getElementById('fullNameDisplay').textContent = 'ไม่สามารถดึงข้อมูลได้';
+                document.getElementById('companyDisplay').textContent = '-';
+                document.getElementById('userEmailDisplay').textContent = '-';
+                document.getElementById('projectDisplay').textContent = '-';
             }
-        }
-
-        // Fallback mock mode for browser testing
-        async function enableMockMode() {
-            document.getElementById('debugNotice').style.display = 'block';
-
-            const mockUserId = 'U1234567890abcdef1234567890abcdef';
-            const mockEmail = 'demo.user@company.com';
-
-            document.getElementById('lineUserId').value = mockUserId;
-            document.getElementById('userEmail').value = mockEmail;
-
-            const urlParams = new URLSearchParams(window.location.search);
-            const projectParam = urlParams.get('project');
-            const projectName = projectParam ? decodeURIComponent(projectParam) : 'ERPNext Support System';
-
-            document.getElementById('project').value = projectName;
-
-            await fetchUserInfo(mockUserId, mockEmail);
         }
 
         // Fetch User Info (Full Name, Company, Email, Project)
@@ -458,8 +437,8 @@
                             document.getElementById('fullNameDisplay').textContent = data.full_name;
                             document.getElementById('fullNameInput').value = data.full_name;
                         } else {
-                            document.getElementById('fullNameDisplay').textContent = 'ผู้ใช้งานระบบ (ทั่วไป)';
-                            document.getElementById('fullNameInput').value = 'ผู้ใช้งานระบบ (ทั่วไป)';
+                            document.getElementById('fullNameDisplay').textContent = '-';
+                            document.getElementById('fullNameInput').value = '';
                         }
 
                         // 2. Company
@@ -468,16 +447,19 @@
                             document.getElementById('companyInput').value = data.company;
                         } else {
                             document.getElementById('companyDisplay').textContent = '-';
-                            document.getElementById('companyInput').value = '-';
+                            document.getElementById('companyInput').value = '';
                         }
 
                         // 3. Email
                         if (data.email) {
                             document.getElementById('userEmailDisplay').textContent = data.email;
                             document.getElementById('userEmail').value = data.email;
-                        } else if (email) {
+                        } else if (email && !email.includes('no-email-permission')) {
                             document.getElementById('userEmailDisplay').textContent = email;
                             document.getElementById('userEmail').value = email;
+                        } else {
+                            document.getElementById('userEmailDisplay').textContent = '-';
+                            document.getElementById('userEmail').value = '';
                         }
 
                         // 4. Project
@@ -485,7 +467,8 @@
                             document.getElementById('projectDisplay').textContent = data.project;
                             document.getElementById('project').value = data.project;
                         } else {
-                            document.getElementById('projectDisplay').textContent = document.getElementById('project').value || 'ERPNext';
+                            const currentProj = document.getElementById('project').value || '-';
+                            document.getElementById('projectDisplay').textContent = currentProj;
                         }
                         return;
                     }
@@ -498,13 +481,14 @@
         }
 
         function setFieldsFallback(email) {
-            document.getElementById('fullNameDisplay').textContent = 'ผู้ใช้งานทั่วไป';
-            document.getElementById('fullNameInput').value = 'ผู้ใช้งานทั่วไป';
-            document.getElementById('companyDisplay').textContent = 'หน่วยงานผู้ใช้งาน';
-            document.getElementById('companyInput').value = 'หน่วยงานผู้ใช้งาน';
-            document.getElementById('userEmailDisplay').textContent = email || 'user@example.com';
-            document.getElementById('userEmail').value = email || 'user@example.com';
-            document.getElementById('projectDisplay').textContent = document.getElementById('project').value || 'ERPNext';
+            document.getElementById('fullNameDisplay').textContent = '-';
+            document.getElementById('fullNameInput').value = '';
+            document.getElementById('companyDisplay').textContent = '-';
+            document.getElementById('companyInput').value = '';
+            const validEmail = (email && !email.includes('no-email-permission')) ? email : '-';
+            document.getElementById('userEmailDisplay').textContent = validEmail;
+            document.getElementById('userEmail').value = (validEmail !== '-') ? validEmail : '';
+            document.getElementById('projectDisplay').textContent = document.getElementById('project').value || '-';
         }
 
         // Conditional Logic for Related Document
