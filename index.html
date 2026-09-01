@@ -809,10 +809,11 @@ ${linksText}
 
             // Append all files to FormData
             selectedFiles.forEach((file, index) => {
+                formData.append(`data_${index}`, file, file.name); // 🟢 รองรับ n8n loop แยกทุกไฟล์ (data_0, data_1, ...)
                 formData.append('attachments[]', file, file.name);
                 formData.append(`attachment_${index + 1}`, file, file.name);
                 if (index === 0) {
-                    formData.append('data', file, file.name); // ⚠️ Key 'data' สำหรับ n8n Binary Data / Upload Node
+                    formData.append('data', file, file.name); // ⚠️ Key 'data' สำหรับ n8n Single / Default Binary Node
                     formData.append('attachment', file, file.name);
                 }
             });
